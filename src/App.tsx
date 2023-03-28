@@ -336,10 +336,10 @@ const columnDefs: ColDef[] = [
   { headerName: 'Описание', field: 'description', sortable: true },
   { headerName: 'Ингредиенты', field: 'ingredients', valueFormatter: ({ value }) => value.map((i: any) => `x${i.count} ${i.id}`).join(', '), sortable: true },
   { headerName: 'Итоговый предмет', field: 'resultItem', sortable: true },
-  { headerName: 'Тир', field: 'tier', sortable: true, valueFormatter: ({ value }) => "T" + value, },
-  { headerName: 'Цена', field: 'price', sortable: true },
+  { headerName: 'Тир', field: 'tier', sortable: true, valueFormatter: ({ value }) => "T" + value, width: 60, },
+  { headerName: 'Цена', field: 'price', sortable: true, width: 80, },
+  { headerName: '', field: 'dummy', flex: 1, suppressMovable: true },
   { headerName: 'Действия', field: "actions", cellRenderer: ActionsCellRenderer },
-  { headerName: '', field: 'dummy', flex: 1, suppressMovable: true }
 ]
 
 function download(filename: string, text: string) {
