@@ -1,25 +1,11 @@
 import { ColDef, GridApi, GridReadyEvent, GroupCellRendererParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { ChangeEvent, ChangeEventHandler, createContext, createRef, FC, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, createContext, createRef, FC, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { Alert, Input, Button, ButtonProps, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, FormText, Label } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleInfo, faCopy, faEdit, faEye, faFileExport, faFileImport, faGripVertical, faInfo, faInfoCircle, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
-import { decode } from 'windows-1251';
-
-type ItemsSelectProps = {
-  items: any[]
-  value?: string
-  onChange: ChangeEventHandler<HTMLInputElement>
-  readOnly?: boolean
-}
-
-const ItemsSelect = ({ items, value, onChange, readOnly }: ItemsSelectProps) => (
-  <Input type="select" value={value} onChange={onChange} disabled={readOnly}>
-    <option value="" disabled>Выберите предмет</option>
-    {items.map(item => <option key={item.id} value={item.id}>{item.name} ({item.id})</option>)}
-  </Input>
-)
-
+import { faCircleInfo, faCopy, faEdit, faEye, faFileExport, faFileImport, faGripVertical, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
+import DropdownSearchSelect from './common/components/reactstrap/dropdown-search-select/dropdown-search-select';
+// import { decode } from 'windows-1251';
 
 const ModalContext = createContext<([string, React.Dispatch<React.SetStateAction<string>>] | [any, React.Dispatch<React.SetStateAction<any>>])[]>(null as any)
 
@@ -107,7 +93,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.1</p>
+        <p>Редактор рецептов v0.0.2</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -147,8 +133,8 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
     setIngredients([...ingredients, { id: '', count: 1 }])
   }
 
-  const handleItemIngredient = (idxToChange: number) => (event: ChangeEvent<HTMLInputElement>) => {
-    setIngredients(ingredients.map((a, idx) => idx === idxToChange ? ({ ...a, id: event.target.value }) : a))
+  const handleItemIngredient = (idxToChange: number) => (value: string) => {
+    setIngredients(ingredients.map((a, idx) => idx === idxToChange ? ({ ...a, id: value }) : a))
   }
 
   const handleCountIngredient = (idxToChange:number, value: number) => {
@@ -221,10 +207,11 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
           <Label for="exampleEmail">
             Предмет, получаемый в результате крафта
           </Label>
-          <ItemsSelect readOnly={readOnly} items={items} value={resultItem} onChange={(event) => {
-            setResultItem(event.target.value)
-            setId(`ITRC_${event.target.value.replace('IT', '')}`)
-          }}/>
+
+          <DropdownSearchSelect disabled={readOnly} placeholder="Выберите предмет" value={resultItem} onChange={(value) => {
+            setResultItem(value)
+            setId(`ITRC_${value.replace('IT', '')}`)
+          }} options={items.map(i => ({ value: i.id, displayValue: `${i.name || ''} (${i.id})` }))} />
         </FormGroup>
 
         <FormGroup>
@@ -265,7 +252,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
                 <FontAwesomeIcon title="Переместить" icon={faGripVertical} />
               </div>
               <div className="col-lg-7">
-                <ItemsSelect readOnly={readOnly} items={items} value={ingredient.id} onChange={handleItemIngredient(idx)} />
+                <DropdownSearchSelect disabled={readOnly} placeholder="Выберите предмет" value={ingredient.id} onChange={handleItemIngredient(idx)} options={items.map(i => ({ value: i.id, displayValue: `${i.name || ''} (${i.id})` }))} />
               </div>
               <div className="col-lg-2">
                 <Input readOnly={readOnly} value={ingredient.count} type="number" min="1" max="99" onChange={(event) => handleCountIngredient(idx, Number(event.target.value))}/>
@@ -548,7 +535,7 @@ const App = () => {
   return (
     <div className="p-3">
       <div className="d-flex mb-3 flex-wrap align-items-center gap-2">
-        <UploadButton color="primary" disabled={!!items.length} onFileUpload={handleScriptsFileUpload}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать декомпилированный GOTHIC.src</UploadButton>
+        <UploadButton color="primary" disabled={!!items.length} onFileUpload={handleScriptsFileUpload}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать декомпилированный GOTHIC.DAT</UploadButton>
         <Button color="primary" onClick={handleAboutBtnClick} ><FontAwesomeIcon icon={faCircleInfo} className="me-1" />О программе</Button>
       </div>
 
@@ -565,7 +552,7 @@ const App = () => {
             <Button disabled={!rowData.length} className="flex-shrink-0" color="primary" onClick={handleExport}><FontAwesomeIcon icon={faFileExport} className="me-1" />Экспортировать рецепты</Button>
           </div>
 
-          <div style={{height: '300px'}}>
+          <div style={{height: '600px'}}>
             <AgGridReact
               className="ag-theme-alpine"
               columnDefs={columnDefs}

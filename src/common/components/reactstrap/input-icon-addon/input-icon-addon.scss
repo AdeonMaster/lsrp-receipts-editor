@@ -1,0 +1,39 @@
+.inner-addon {
+    position: relative;
+
+    .glyphicon {
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 35px; // 38px
+      position: absolute;
+      pointer-events: none;
+      color: #C5D0DE;
+
+      &.glyphicon-button {
+        pointer-events: auto;
+      }
+    }
+
+    &.left-addon {
+      input, select {
+        padding-left:  38px;
+      }
+
+      .glyphicon {
+        left: 0px;
+      }
+    }
+
+    &.right-addon {
+      input,select {
+        padding-right: 38px;
+      }
+
+      .glyphicon {
+        right: 0px;
+      }
+    }
+  }
