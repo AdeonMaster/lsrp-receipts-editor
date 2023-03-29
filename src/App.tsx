@@ -5,6 +5,7 @@ import { Alert, Input, Button, ButtonProps, Modal, ModalHeader, ModalBody, Modal
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleInfo, faCopy, faEdit, faEye, faFileExport, faFileImport, faGripVertical, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 import DropdownSearchSelect from './common/components/reactstrap/dropdown-search-select/dropdown-search-select';
+import { indexBy, prop, values } from 'ramda';
 // import { decode } from 'windows-1251';
 
 const ModalContext = createContext<([string, React.Dispatch<React.SetStateAction<string>>] | [any, React.Dispatch<React.SetStateAction<any>>])[]>(null as any)
@@ -93,7 +94,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.2</p>
+        <p>Редактор рецептов v0.0.3</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -156,6 +157,21 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
       resultItem,
       price,
       tier,
+    }
+
+    if (!name.length) {
+      setError('Название рецепта не может быть пустым')
+      return
+    }
+
+    if (!resultItem.length) {
+      setError('Предмет, получаемый в результате крафта, не может быть пустым')
+      return
+    }
+
+    if (!ingredients.length) {
+      setError('Список ингредиентов пуст')
+      return
     }
 
     if (params?.type === 'edit') {
@@ -365,6 +381,8 @@ const UploadButton = ({ onFileUpload, children, ...otherProps }: ButtonProps & {
 
     fileReader.onload = function() {
       onFileUpload(fileReader.result as string)
+
+      event.target.value = ''
     }
 
     fileReader.readAsText(event.target.files[0]);
@@ -481,7 +499,7 @@ const extractInstances = (file: string) => [...file.matchAll(instanceRegExpr)].m
 const App = () => {
   const { openModal } = useModals()
   const [api, setApi] = useState<GridApi | null>(null)
-  const [rowData, setRowData] = useState([]);
+  const [rowData, setRowData] = useState(JSON.parse(localStorage.getItem('receipts') || '[]'));
   const [items, setItems] = useState<{
       id: string;
       name: string | number | undefined;
@@ -508,7 +526,14 @@ const App = () => {
   }
 
   const handleImport = (text: string) => {
-    setRowData(JSON.parse(text))
+    const current = indexBy(prop('id'), rowData)
+    const imported = indexBy(prop('id'), JSON.parse(text))
+
+    const result = values({...current, ...imported })
+
+    localStorage.setItem('receipts', JSON.stringify(result))
+
+    setRowData(result)
   }
 
   const handleScriptsFileUpload = (text: string) => {
@@ -531,6 +556,24 @@ const App = () => {
   const handleAboutBtnClick = () => {
     openModal('about')
   }
+
+  useEffect(() => {
+    const callback = () => {
+      if (items.length > 0) {
+        localStorage.setItem('receipts', JSON.stringify(rowData))
+      }
+    }
+
+    const interval = setInterval(callback, 60000);
+
+    window.addEventListener('beforeunload', callback)
+
+    return () => {
+      clearInterval(interval)
+
+      window.removeEventListener('beforeunload', callback)
+    }
+  }, [rowData, items])
 
   return (
     <div className="p-3">
