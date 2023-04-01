@@ -94,7 +94,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.3</p>
+        <p>Редактор рецептов v0.0.4</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -473,8 +473,10 @@ const extractFunctions = (file: string) => [...file.matchAll(functionsRegExpr)].
 }));
 
 const extractInstanceProperties = (instanceBody: string) => {
-  const body = instanceBody.replace(/\s/g, '').replace(/;$/g, '');
+  const body = instanceBody.replace(/\s(?=(?:"[^"]*"|[^"])*$)/g, '').replace(/;$/g, '');
   const lines = body.split(';');
+
+  console.log(body)
 
   return lines.map((line) => {
       const parts = line.split('=');
@@ -541,8 +543,8 @@ const App = () => {
     const instances = extractInstances(content)
     const constans = extractConstants(content)
 
-    const items = instances.filter(instance => instance.name.startsWith('it')).map(instance => {
-      const name = instance.properties.find((prop) => prop && prop[0] === 'name')?.[1]
+    const items = instances.filter(instance => instance.name.startsWith('it') && instance.name !== 'item').map(instance => {
+      const name = instance.properties.find((prop) => prop && prop[0] === 'name')?.[1] || '(Без названия)'
 
       return {
         id: instance.name.toLocaleUpperCase(),
