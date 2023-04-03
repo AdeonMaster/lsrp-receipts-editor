@@ -94,11 +94,77 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.4</p>
+        <p>Редактор рецептов v0.0.5</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
         <p>(c) 2023 Long Story Role Play</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="secondary" onClick={toggle}>
+          Закрыть
+        </Button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+type DaedalusModalProps = {
+  rowData: any[],
+}
+
+const DaedalusModal = ({ rowData }: DaedalusModalProps) => {
+  const { isOpen, toggle } = useModal('daedalus')
+
+  const code = rowData.map((receipt) => {
+    return `instance ${receipt.id}(Prototype_Receipt)
+{
+	name = "Рецепт: ${receipt.name}";
+	on_state[0] = Use${receipt.id};
+	text[2] = "Инструкция по изготовлению";
+	text[3] = "${receipt.name}";
+	visual_change = "${receipt.ingredients.map(({id, count}: any) => `${id}:${count}`).join(',')}";
+};
+
+func void Use${receipt.id}()
+{
+	var int nDocID;
+	nDocID = Doc_Create();
+	Doc_SetPages(nDocID,1);
+	Doc_SetPage(nDocID,0,"letters.TGA",0);
+	Doc_SetFont(nDocID,0,FONT_BookHeadline);
+	Doc_SetMargins(nDocID,-1,50,50,50,50,1);
+	Doc_PrintLine(nDocID,0,${receipt.id}.text[3]);
+	Doc_SetFont(nDocID,0,FONT_Book);
+	Doc_PrintLine(nDocID,0,"");
+	Doc_PrintLine(nDocID,0,"${receipt.description}");
+	Doc_PrintLine(nDocID,0,"");
+	Doc_PrintLine(nDocID,0,"Ингредиенты:");
+  ${receipt.ingredients.map(({id, count}: any) => `	Doc_PrintLine(nDocID,0,ConcatStrings("- x${count} ",${id}.name));`).join('\n')}
+	Doc_PrintLines(nDocID,0,"");
+	Doc_Show(nDocID);
+};
+`}).join('\n')
+
+  const xml = rowData.map((receipt) => `<item><instance>${receipt.id}</instance></item>`).join('\n')
+
+  return (
+    <Modal isOpen={isOpen} toggle={toggle} size="lg">
+      <ModalHeader toggle={toggle}>Код</ModalHeader>
+      <ModalBody>
+        <FormGroup>
+          <Label for="exampleEmail">
+            Daedalus код
+          </Label>
+          <Input type="textarea" readOnly value={code} style={{ minHeight: '500px' }} />
+        </FormGroup>
+
+        <FormGroup>
+          <Label for="exampleEmail">
+            items.xml
+          </Label>
+          <Input type="textarea" readOnly value={xml} style={{ minHeight: '100px' }} />
+        </FormGroup>
       </ModalBody>
       <ModalFooter>
         <Button color="secondary" onClick={toggle}>
@@ -559,6 +625,10 @@ const App = () => {
     openModal('about')
   }
 
+  const handleViewBtnClick = () => {
+    openModal('daedalus')
+  }
+
   useEffect(() => {
     const callback = () => {
       if (items.length > 0) {
@@ -595,6 +665,8 @@ const App = () => {
 
             <UploadButton className="flex-shrink-0" color="primary" onFileUpload={handleImport}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать рецепты</UploadButton>
             <Button disabled={!rowData.length} className="flex-shrink-0" color="primary" onClick={handleExport}><FontAwesomeIcon icon={faFileExport} className="me-1" />Экспортировать рецепты</Button>
+          
+            <Button className="flex-shrink-0" color="primary" onClick={handleViewBtnClick}><FontAwesomeIcon icon={faEye} className="me-1" />Daedalus код</Button>
           </div>
 
           <div style={{height: '600px'}}>
@@ -609,6 +681,7 @@ const App = () => {
 
           <RemoveConfirmModal rowData={rowData} setRowData={setRowData} items={items} />
           <AddReceiptModal rowData={rowData} setRowData={setRowData} items={items} />
+          <DaedalusModal rowData={rowData} />
         </div>
       )}
     </div>
