@@ -94,7 +94,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.5</p>
+        <p>Редактор рецептов v0.0.6</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -107,6 +107,21 @@ const AboutModal = () => {
       </ModalFooter>
     </Modal>
   )
+}
+
+function splitter(str: string, l: number){
+  var strs = [];
+  while(str.length > l){
+      var pos = str.substring(0, l).lastIndexOf(' ');
+      pos = pos <= 0 ? l : pos;
+      strs.push(str.substring(0, pos));
+      var i = str.indexOf(' ', pos)+1;
+      if(i < pos || i > pos+l)
+          i = pos;
+      str = str.substring(i);
+  }
+  strs.push(str);
+  return strs;
 }
 
 type DaedalusModalProps = {
@@ -137,7 +152,7 @@ func void Use${receipt.id}()
 	Doc_PrintLine(nDocID,0,${receipt.id}.text[3]);
 	Doc_SetFont(nDocID,0,FONT_Book);
 	Doc_PrintLine(nDocID,0,"");
-	Doc_PrintLine(nDocID,0,"${receipt.description}");
+  ${splitter(receipt.description, 48).map(chunk => `	Doc_PrintLine(nDocID,0,"${chunk}");`).join('\n')}
 	Doc_PrintLine(nDocID,0,"");
 	Doc_PrintLine(nDocID,0,"Ингредиенты:");
   ${receipt.ingredients.map(({id, count}: any) => `	Doc_PrintLine(nDocID,0,ConcatStrings("- x${count} ",${id}.name));`).join('\n')}
@@ -145,7 +160,6 @@ func void Use${receipt.id}()
 	Doc_Show(nDocID);
 };
 `}).join('\n')
-
   const xml = rowData.map((receipt) => `<item><instance>${receipt.id}</instance></item>`).join('\n')
 
   return (
@@ -437,7 +451,7 @@ function download(filename: string, text: string) {
   document.body.removeChild(element);
 }
 
-const UploadButton = ({ onFileUpload, children, ...otherProps }: ButtonProps & { onFileUpload: (text: string) => void }) => {
+const UploadButton = ({ onFileUpload, accept, children, ...otherProps }: ButtonProps & { onFileUpload: (text: string) => void, accept?: string }) => {
   const fileInput = createRef<HTMLInputElement>()
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -460,7 +474,7 @@ const UploadButton = ({ onFileUpload, children, ...otherProps }: ButtonProps & {
 
   return (
     <>
-      <Input innerRef={fileInput} type="file" className="d-none" onChange={handleFileUpload} />
+      <Input innerRef={fileInput} type="file" accept={accept} className="d-none" onChange={handleFileUpload} />
       <Button {...otherProps} onClick={handleImport}>{children}</Button>
     </>
   )
@@ -650,7 +664,7 @@ const App = () => {
   return (
     <div className="p-3">
       <div className="d-flex mb-3 flex-wrap align-items-center gap-2">
-        <UploadButton color="primary" disabled={!!items.length} onFileUpload={handleScriptsFileUpload}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать декомпилированный GOTHIC.DAT</UploadButton>
+        <UploadButton accept=".d" color="primary" disabled={!!items.length} onFileUpload={handleScriptsFileUpload}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать декомпилированный GOTHIC.DAT</UploadButton>
         <Button color="primary" onClick={handleAboutBtnClick} ><FontAwesomeIcon icon={faCircleInfo} className="me-1" />О программе</Button>
       </div>
 
@@ -665,7 +679,7 @@ const App = () => {
 
             <UploadButton className="flex-shrink-0" color="primary" onFileUpload={handleImport}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать рецепты</UploadButton>
             <Button disabled={!rowData.length} className="flex-shrink-0" color="primary" onClick={handleExport}><FontAwesomeIcon icon={faFileExport} className="me-1" />Экспортировать рецепты</Button>
-          
+
             <Button className="flex-shrink-0" color="primary" onClick={handleViewBtnClick}><FontAwesomeIcon icon={faEye} className="me-1" />Daedalus код</Button>
           </div>
 
