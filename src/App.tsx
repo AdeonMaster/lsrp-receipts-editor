@@ -94,7 +94,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.6</p>
+        <p>Редактор рецептов v0.0.7</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -128,10 +128,31 @@ type DaedalusModalProps = {
   rowData: any[],
 }
 
+const getItemNameFromInstance = (instance: string) => {
+  //@ts-ignore
+  const item = window.Daedalus.instances.find((a: any) => a.name.toUpperCase() === instance);
+  if (!item) return ""
+
+  const name = item.properties.find((p: any) => p[0] === "name")
+  if (!name) return ""
+
+  //@ts-ignore
+  return window.Daedalus.constants.find((c: any) => c.name === name[1])?.value.replaceAll("\"", "") || name[1].replaceAll("\"", "")
+}
+
 const DaedalusModal = ({ rowData }: DaedalusModalProps) => {
   const { isOpen, toggle } = useModal('daedalus')
 
   const code = rowData.map((receipt) => {
+    const descriptionParagraphs = receipt.description.replaceAll("\"", "'").split("\n");
+    const lines = descriptionParagraphs.reduce((acc: string[], p: string) => {
+      const chunks = splitter(p, 48)
+
+      return [...acc, chunks.map(chunk => `	Doc_PrintLine(nDocID,0,"${chunk}");`).join('\n')]
+    }, []);
+
+    const ingredients = receipt.ingredients.map(({id, count}: any) => `	Doc_PrintLine(nDocID,0,"- x${count} ${getItemNameFromInstance(id)}");`).join('\n');
+
     return `instance ${receipt.id}(Prototype_Receipt)
 {
 	name = "Рецепт: ${receipt.name}";
@@ -152,10 +173,10 @@ func void Use${receipt.id}()
 	Doc_PrintLine(nDocID,0,${receipt.id}.text[3]);
 	Doc_SetFont(nDocID,0,FONT_Book);
 	Doc_PrintLine(nDocID,0,"");
-  ${splitter(receipt.description, 48).map(chunk => `	Doc_PrintLine(nDocID,0,"${chunk}");`).join('\n')}
+  ${lines.join('\n')}
 	Doc_PrintLine(nDocID,0,"");
 	Doc_PrintLine(nDocID,0,"Ингредиенты:");
-  ${receipt.ingredients.map(({id, count}: any) => `	Doc_PrintLine(nDocID,0,ConcatStrings("- x${count} ",${id}.name));`).join('\n')}
+  ${ingredients}
 	Doc_PrintLines(nDocID,0,"");
 	Doc_Show(nDocID);
 };
@@ -621,14 +642,20 @@ const App = () => {
   const handleScriptsFileUpload = (text: string) => {
     const content = text // decode(text)
     const instances = extractInstances(content)
-    const constans = extractConstants(content)
+    const constants = extractConstants(content)
+
+    //@ts-ignore
+    window.Daedalus = {
+      instances,
+      constants,
+    }
 
     const items = instances.filter(instance => instance.name.startsWith('it') && instance.name !== 'item').map(instance => {
       const name = instance.properties.find((prop) => prop && prop[0] === 'name')?.[1] || '(Без названия)'
 
       return {
         id: instance.name.toLocaleUpperCase(),
-        name: constans.find(c => c.name === name)?.value || name
+        name: constants.find(c => c.name === name)?.value || name
       }
     })
 
