@@ -48,6 +48,7 @@ type DropdownSearchSelectProps = {
   className?: string;
   valid?: boolean;
   invalid?: boolean;
+  id?: string;
 };
 
 const DropdownSearchSelect = ({

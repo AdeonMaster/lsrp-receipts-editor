@@ -87,6 +87,32 @@ const RemoveConfirmModal = ({ rowData, setRowData }: RemoveConfirmModalProps) =>
   )
 }
 
+const RemoveAllModal = ({ setRowData }: RemoveConfirmModalProps) => {
+  const { isOpen, toggle } = useModal('removeAll')
+
+  const handleClick = () => {
+    setRowData([])
+    toggle()
+  }
+
+  return (
+    <Modal isOpen={isOpen} toggle={toggle}>
+      <ModalHeader toggle={toggle}>Удалить</ModalHeader>
+      <ModalBody>
+        Вы уверены, что хотите удалить все элементы?
+      </ModalBody>
+      <ModalFooter>
+        <Button color="primary" onClick={handleClick}>
+          Да
+        </Button>
+        <Button color="secondary" onClick={toggle}>
+          Отмена
+        </Button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
 const AboutModal = () => {
   const { isOpen, toggle } = useModal('about')
 
@@ -94,7 +120,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.7</p>
+        <p>Редактор рецептов v0.0.8</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -220,6 +246,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
   const [id, setId] = useState('')
   const [price, setPrice] = useState(50)
   const [tier, setTier] = useState(0)
+  const [isSystemReceipt, setIsSystemReceipt] = useState(false)
 
   useEffect(() => {
     setName(params?.data?.name || '')
@@ -229,6 +256,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
     setId(params?.data?.id || '')
     setPrice(params?.data?.price || 50)
     setTier(params?.data?.tier || 0)
+    setIsSystemReceipt(params?.data?.isSystemReceipt || false)
   }, [params])
 
   const handleAddIngredient = () => {
@@ -258,6 +286,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
       resultItem,
       price,
       tier,
+      isSystemReceipt,
     }
 
     if (!name.length) {
@@ -305,41 +334,41 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
         {error && <Alert color="danger"><strong>Ошибка:</strong> {error}</Alert>}
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="name">
             Название рецепта
           </Label>
-          <Input readOnly={readOnly} value={name} onChange={(event) => setName(event.target.value)} />
+          <Input id="name" readOnly={readOnly} value={name} onChange={(event) => setName(event.target.value)} />
           <FormText>* Название самого предмета</FormText>
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="description">
             Дополнительное описание
           </Label>
-          <Input readOnly={readOnly} type="textarea" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <Input id="description" readOnly={readOnly} type="textarea" value={description} onChange={(event) => setDescription(event.target.value)} />
           <FormText>* Будет выводиться внутри страницы с рецептом перед перечнем необходимых ресурсов</FormText>
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="resultItem">
             Предмет, получаемый в результате крафта
           </Label>
 
-          <DropdownSearchSelect disabled={readOnly} placeholder="Выберите предмет" value={resultItem} onChange={(value) => {
+          <DropdownSearchSelect id="resultItem" disabled={readOnly} placeholder="Выберите предмет" value={resultItem} onChange={(value) => {
             setResultItem(value)
             setId(`ITRC_${value.replace('IT', '')}`)
           }} options={items.map(i => ({ value: i.id, displayValue: `${i.name || ''} (${i.id})` }))} />
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="instance">
             Код рецепта
           </Label>
-          <Input readOnly={readOnly} value={id} onChange={(event) => setId(event.target.value)} />
+          <Input id="instance" readOnly={readOnly} value={id} onChange={(event) => setId(event.target.value)} />
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label>
             Ингредиенты, необходимые для крафта ({ingredients.length})
           </Label>
 
@@ -382,10 +411,10 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="tier">
             Тир
           </Label>
-          <Input disabled={readOnly} type="select" value={tier} onChange={(event) => setTier(Number(event.target.value))}>
+          <Input id="tier" disabled={readOnly} type="select" value={tier} onChange={(event) => setTier(Number(event.target.value))}>
             <option value="" disabled>Выберите тир</option>
             <option value="0">T0</option>
             <option value="1">T1</option>
@@ -398,12 +427,21 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
         </FormGroup>
 
         <FormGroup>
-          <Label for="exampleEmail">
+          <Label for="price">
             Цена
           </Label>
-          <Input readOnly={readOnly} type="number" min="0" value={price} onChange={(event) => setPrice(Number(event.target.value))} />
+          <Input id="price" readOnly={readOnly} type="number" min="0" value={price} onChange={(event) => setPrice(Number(event.target.value))} />
         </FormGroup>
+
+        <FormGroup check>
+          <Input id="isSystemReceipt" readOnly={readOnly} disabled={readOnly} type="checkbox" checked={isSystemReceipt} onChange={(event) => setIsSystemReceipt(event.target.checked)} />
+          <Label for="isSystemReceipt">
+            Это системный рецепт
+          </Label>
+        </FormGroup>
+        <FormText>* Так называемые системные рецепты крафта не должны иметь игрового предмета для изучения. Данные рецепты используются в механике взаимодействия с MOBSI</FormText>
       </ModalBody>
+
       <ModalFooter>
         {!readOnly && (
           <Button color="primary" onClick={handleClick}>
@@ -455,6 +493,7 @@ const columnDefs: ColDef[] = [
   { headerName: 'Итоговый предмет', field: 'resultItem', sortable: true },
   { headerName: 'Тир', field: 'tier', sortable: true, valueFormatter: ({ value }) => "T" + value, width: 60, },
   { headerName: 'Цена', field: 'price', sortable: true, width: 80, },
+  { headerName: 'Системный рецепт', field: 'isSystemReceipt', sortable: true, filter: 'agTextColumnFilter' },
   { headerName: '', field: 'dummy', flex: 1, suppressMovable: true },
   { headerName: 'Действия', field: "actions", cellRenderer: ActionsCellRenderer },
 ]
@@ -618,6 +657,10 @@ const App = () => {
     openModal('add')
   }
 
+  const handleRemoveAllBtnClick = () => {
+    openModal('removeAll')
+  }
+
   const handleGridReady = (event: GridReadyEvent) => {
     setApi(event.api)
   }
@@ -689,7 +732,7 @@ const App = () => {
   }, [rowData, items])
 
   return (
-    <div className="p-3">
+    <div className="p-3 vh-100 d-flex flex-column">
       <div className="d-flex mb-3 flex-wrap align-items-center gap-2">
         <UploadButton accept=".d" color="primary" disabled={!!items.length} onFileUpload={handleScriptsFileUpload}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать декомпилированный GOTHIC.DAT</UploadButton>
         <Button color="primary" onClick={handleAboutBtnClick} ><FontAwesomeIcon icon={faCircleInfo} className="me-1" />О программе</Button>
@@ -698,11 +741,12 @@ const App = () => {
       <AboutModal />
 
       {items.length > 0 && (
-        <div>
+        <div className="flex-grow-1 d-flex flex-column">
           <div className="d-flex align-items-center mb-3 gap-2">
             <Input onChange={handleChange} placeholder="Найти"/>
 
             <Button className="flex-shrink-0" color="success" onClick={handleAddBtnClick}><FontAwesomeIcon icon={faPlus} className="me-1" />Новый рецепт</Button>
+            <Button disabled={!rowData.length} className="flex-shrink-0" color="danger" onClick={handleRemoveAllBtnClick}><FontAwesomeIcon icon={faTrash} className="me-1" />Удалить все</Button>
 
             <UploadButton className="flex-shrink-0" color="primary" onFileUpload={handleImport}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать рецепты</UploadButton>
             <Button disabled={!rowData.length} className="flex-shrink-0" color="primary" onClick={handleExport}><FontAwesomeIcon icon={faFileExport} className="me-1" />Экспортировать рецепты</Button>
@@ -710,7 +754,7 @@ const App = () => {
             <Button className="flex-shrink-0" color="primary" onClick={handleViewBtnClick}><FontAwesomeIcon icon={faEye} className="me-1" />Daedalus код</Button>
           </div>
 
-          <div style={{height: '600px'}}>
+          <div className="flex-grow-1">
             <AgGridReact
               className="ag-theme-alpine"
               columnDefs={columnDefs}
@@ -722,6 +766,7 @@ const App = () => {
 
           <RemoveConfirmModal rowData={rowData} setRowData={setRowData} items={items} />
           <AddReceiptModal rowData={rowData} setRowData={setRowData} items={items} />
+          <RemoveAllModal rowData={rowData} setRowData={setRowData} items={items} />
           <DaedalusModal rowData={rowData} />
         </div>
       )}
