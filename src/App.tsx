@@ -120,7 +120,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.8</p>
+        <p>Редактор рецептов v0.0.9</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -246,6 +246,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
   const [id, setId] = useState('')
   const [price, setPrice] = useState(50)
   const [tier, setTier] = useState(0)
+  const [category, setCategory] = useState('')
   const [isSystemReceipt, setIsSystemReceipt] = useState(false)
 
   useEffect(() => {
@@ -256,6 +257,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
     setId(params?.data?.id || '')
     setPrice(params?.data?.price || 50)
     setTier(params?.data?.tier || 0)
+    setCategory(params?.data?.category || '')
     setIsSystemReceipt(params?.data?.isSystemReceipt || false)
   }, [params])
 
@@ -286,6 +288,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
       resultItem,
       price,
       tier,
+      category,
       isSystemReceipt,
     }
 
@@ -427,6 +430,23 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
         </FormGroup>
 
         <FormGroup>
+          <Label for="category">
+            Категория
+          </Label>
+          <Input id="category" disabled={readOnly} type="select" value={category} onChange={(event) => setCategory(event.target.value)}>
+            <option value="" disabled>Выберите категорию</option>
+            <option value="runes">Создание рун</option>
+            <option value="alchemy">Алхимия</option>
+            <option value="smith">Кузнечное дело</option>
+            <option value="jewelry">Ювелирное дело</option>
+            <option value="cooking">Готовка</option>
+            <option value="carpentry">Плотничное дело</option>
+            <option value="leatherworking">Кожевенное дело</option>
+            <option value="other">Другое</option>
+          </Input>
+        </FormGroup>
+
+        <FormGroup>
           <Label for="price">
             Цена
           </Label>
@@ -492,6 +512,7 @@ const columnDefs: ColDef[] = [
   { headerName: 'Ингредиенты', field: 'ingredients', valueFormatter: ({ value }) => value.map((i: any) => `x${i.count} ${i.id}`).join(', '), sortable: true },
   { headerName: 'Итоговый предмет', field: 'resultItem', sortable: true },
   { headerName: 'Тир', field: 'tier', sortable: true, valueFormatter: ({ value }) => "T" + value, width: 60, },
+  { headerName: 'Категория', field: 'category', sortable: true },
   { headerName: 'Цена', field: 'price', sortable: true, width: 80, },
   { headerName: 'Системный рецепт', field: 'isSystemReceipt', sortable: true, filter: 'agTextColumnFilter' },
   { headerName: '', field: 'dummy', flex: 1, suppressMovable: true },
