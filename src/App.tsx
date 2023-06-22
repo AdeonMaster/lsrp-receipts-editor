@@ -120,7 +120,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.9</p>
+        <p>Редактор рецептов v0.0.10</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -242,6 +242,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [resultItem, setResultItem] = useState('')
+  const [resultCount, setResultCount] = useState(1);
   const [ingredients, setIngredients] = useState<{id: string, count: number}[]>([])
   const [id, setId] = useState('')
   const [price, setPrice] = useState(50)
@@ -253,6 +254,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
     setName(params?.data?.name || '')
     setDescription(params?.data?.description || '')
     setResultItem(params?.data?.resultItem || '')
+    setResultCount(params?.data?.resultCount || 1)
     setIngredients(params?.data?.ingredients || [])
     setId(params?.data?.id || '')
     setPrice(params?.data?.price || 50)
@@ -286,6 +288,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
       description,
       ingredients,
       resultItem,
+      resultCount,
       price,
       tier,
       category,
@@ -331,7 +334,7 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
       : 'Новый рецепт'
 
   return (
-    <Modal isOpen={isOpen} toggle={toggle} size="lg">
+    <Modal isOpen={isOpen} toggle={toggle} size="xl">
       <ModalHeader toggle={toggle}>{title}</ModalHeader>
       <ModalBody>
         {error && <Alert color="danger"><strong>Ошибка:</strong> {error}</Alert>}
@@ -352,16 +355,29 @@ const AddReceiptModal = ({ rowData, setRowData, items }: RemoveConfirmModalProps
           <FormText>* Будет выводиться внутри страницы с рецептом перед перечнем необходимых ресурсов</FormText>
         </FormGroup>
 
-        <FormGroup>
-          <Label for="resultItem">
-            Предмет, получаемый в результате крафта
-          </Label>
+        <div className="row">
+          <div className="col-md-6">
+            <FormGroup>
+              <Label for="resultItem">
+                Предмет, получаемый в результате крафта
+              </Label>
 
-          <DropdownSearchSelect id="resultItem" disabled={readOnly} placeholder="Выберите предмет" value={resultItem} onChange={(value) => {
-            setResultItem(value)
-            setId(`ITRC_${value.replace('IT', '')}`)
-          }} options={items.map(i => ({ value: i.id, displayValue: `${i.name || ''} (${i.id})` }))} />
-        </FormGroup>
+              <DropdownSearchSelect id="resultItem" disabled={readOnly} placeholder="Выберите предмет" value={resultItem} onChange={(value) => {
+                setResultItem(value)
+                setId(`ITRC_${value.replace('IT', '')}`)
+              }} options={items.map(i => ({ value: i.id, displayValue: `${i.name || ''} (${i.id})` }))} />
+            </FormGroup>
+          </div>
+          <div className="col-md-6">
+            <FormGroup>
+              <Label for="resultCount">
+                Кол-во предметов, получаемых в результате крафта
+              </Label>
+
+              <Input type="number" min="1" max="99" id="resultCount" readOnly={readOnly} value={resultCount} onChange={(event) => setResultCount(Number(event.target.value))} />
+            </FormGroup>
+          </div>
+        </div>
 
         <FormGroup>
           <Label for="instance">
