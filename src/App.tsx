@@ -120,7 +120,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.10</p>
+        <p>Редактор рецептов v0.0.11</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -209,6 +209,10 @@ func void Use${receipt.id}()
 `}).join('\n')
   const xml = rowData.map((receipt) => `<item><instance>${receipt.id}</instance></item>`).join('\n')
 
+  const squirrel = ['id', 'name', 'description', 'resultItem', 'resultCount', 'ingredients', 'price', 'tier', 'category', 'isSystemReceipt', 'count'].reduce((acc, value) => {
+    return acc.replaceAll(`"${value}":`, `${value} = `)
+  }, "RECEIPTS <- " + JSON.stringify(rowData, null, 2))
+
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg">
       <ModalHeader toggle={toggle}>Код</ModalHeader>
@@ -225,6 +229,13 @@ func void Use${receipt.id}()
             items.xml
           </Label>
           <Input type="textarea" readOnly value={xml} style={{ minHeight: '100px' }} />
+        </FormGroup>
+
+        <FormGroup>
+          <Label for="exampleEmail">
+            Squirrel
+          </Label>
+          <Input type="textarea" readOnly value={squirrel} style={{ minHeight: '100px' }} />
         </FormGroup>
       </ModalBody>
       <ModalFooter>
@@ -788,7 +799,7 @@ const App = () => {
             <UploadButton className="flex-shrink-0" color="primary" onFileUpload={handleImport}><FontAwesomeIcon icon={faFileImport} className="me-1" />Импортировать рецепты</UploadButton>
             <Button disabled={!rowData.length} className="flex-shrink-0" color="primary" onClick={handleExport}><FontAwesomeIcon icon={faFileExport} className="me-1" />Экспортировать рецепты</Button>
 
-            <Button className="flex-shrink-0" color="primary" onClick={handleViewBtnClick}><FontAwesomeIcon icon={faEye} className="me-1" />Daedalus код</Button>
+            <Button className="flex-shrink-0" color="primary" onClick={handleViewBtnClick}><FontAwesomeIcon icon={faEye} className="me-1" />Код</Button>
           </div>
 
           <div className="flex-grow-1">
