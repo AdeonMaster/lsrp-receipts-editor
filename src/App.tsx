@@ -8,6 +8,19 @@ import DropdownSearchSelect from './common/components/reactstrap/dropdown-search
 import { indexBy, prop, values } from 'ramda';
 // import { decode } from 'windows-1251';
 
+const DEFAULT_ITEM = {
+  id: '',
+  name: '',
+  description: '',
+  resultItem: '',
+  resultCount: 1,
+  ingredients: [],
+  price: 50,
+  tier: 0,
+  category: '',
+  isSystemReceipt: false,
+}
+
 const getMagicLevelFromDescription = (description: string) => {
 	if (description.includes("VI")) {
 		return 6
@@ -230,7 +243,7 @@ func void Use${receipt.id}()
 
   const squirrel = ['id', 'name', 'description', 'resultItem', 'resultCount', 'ingredients', 'price', 'tier', 'category', 'isSystemReceipt', 'count'].reduce((acc, value) => {
     return acc.replaceAll(`"${value}":`, `${value} = `)
-  }, "RECEIPTS <- " + JSON.stringify(rowData, null, 2))
+  }, "RECEIPTS <- " + JSON.stringify(rowData.map(a => ({ ...DEFAULT_ITEM, ...a })), null, 2))
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg">
