@@ -8,6 +8,24 @@ import DropdownSearchSelect from './common/components/reactstrap/dropdown-search
 import { indexBy, prop, values } from 'ramda';
 // import { decode } from 'windows-1251';
 
+const getMagicLevelFromDescription = (description: string) => {
+	if (description.includes("VI")) {
+		return 6
+	} else if (description.includes("IV")) {
+		return 4
+	} else if (description.includes("V")) {
+		return 5
+	} else if (description.includes("III")) {
+		return 3
+	} else if (description.includes("II")) {
+		return 2
+	} else if (description.includes("I")) {
+		return 1
+	}
+
+	return 0
+}
+
 const ModalContext = createContext<([string, React.Dispatch<React.SetStateAction<string>>] | [any, React.Dispatch<React.SetStateAction<any>>])[]>(null as any)
 
 const ModalContextProvider = ({ children }: { children: ReactNode }) => {
@@ -120,7 +138,7 @@ const AboutModal = () => {
     <Modal isOpen={isOpen} toggle={toggle}>
       <ModalHeader toggle={toggle}>О программе</ModalHeader>
       <ModalBody>
-        <p>Редактор рецептов v0.0.11</p>
+        <p>Редактор рецептов v0.0.12</p>
 
         <p>Разработано <strong>AdeonMaster</strong> ака <strong>Арахисовая Корзинка</strong></p>
 
@@ -184,8 +202,9 @@ const DaedalusModal = ({ rowData }: DaedalusModalProps) => {
 	name = "Рецепт: ${receipt.name}";
 	on_state[0] = Use${receipt.id};
 	text[2] = "Инструкция по изготовлению";
-	text[3] = "${receipt.name}";
-	visual_change = "${receipt.ingredients.map(({id, count}: any) => `${id}:${count}`).join(',')}";
+	text[3] = "${receipt.name}";${receipt.id.includes("ITRC_RU") || receipt.id.includes("ITRC_SC") ? `
+	text[5] = "Круг магии";
+	count[5] = ${getMagicLevelFromDescription(receipt.description)};` : ''}
 };
 
 func void Use${receipt.id}()
